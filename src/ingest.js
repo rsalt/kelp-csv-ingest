@@ -14,18 +14,12 @@ async function insertBatch(client, rows) {
     placeholders.push(`($${n++}, $${n++}, $${n++}, $${n++})`);
     values.push(r.name, r.age, r.address, r.additional_info);
   }
-  const sql = `
-    INSERT INTO public.users (name, age, address, additional_info)
-    VALUES ${placeholders.join(',')}
-  `;
-  await client.query(sql, values);
+  await client.query(
+    `INSERT INTO public.users (name, age, address, additional_info) VALUES ${placeholders.join(',')}`,
+    values,
+  );
 }
 
-/**
- * Stream CSV from disk and insert in batches.
- * @param {{ databaseUrl: string, csvFilePath: string, batchSize: number }} opts
- * @returns {Promise<{ inserted: number }>}
- */
 async function ingestFromCsv(opts) {
   const { databaseUrl, csvFilePath, batchSize } = opts;
   if (!csvFilePath || !fs.existsSync(csvFilePath)) {
@@ -47,40 +41,30 @@ async function ingestFromCsv(opts) {
     }),
   );
 
-  let buffer = [];
+  const buffer = [];
   let inserted = 0;
   const client = await pool.connect();
 
+  const flush = async () => {
+    if (buffer.length === 0) return;
+    await client.query('BEGIN');
+    try {
+      await insertBatch(client, buffer);
+      inserted += buffer.length;
+      buffer.length = 0;
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    }
+  };
+
   try {
     for await (const record of parser) {
-      const nested = flatToNested(record);
-      buffer.push(nestedToDbRow(nested));
-
-      if (buffer.length >= batchSize) {
-        await client.query('BEGIN');
-        try {
-          await insertBatch(client, buffer);
-          inserted += buffer.length;
-          buffer = [];
-          await client.query('COMMIT');
-        } catch (e) {
-          await client.query('ROLLBACK');
-          throw e;
-        }
-      }
+      buffer.push(nestedToDbRow(flatToNested(record)));
+      if (buffer.length >= batchSize) await flush();
     }
-
-    if (buffer.length > 0) {
-      await client.query('BEGIN');
-      try {
-        await insertBatch(client, buffer);
-        inserted += buffer.length;
-        await client.query('COMMIT');
-      } catch (e) {
-        await client.query('ROLLBACK');
-        throw e;
-      }
-    }
+    await flush();
   } finally {
     client.release();
   }

@@ -10,6 +10,10 @@ function createApp() {
   app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
 
+  app.get('/', (_req, res) => {
+    res.json({ ok: true, get: ['/health'], post: ['/api/ingest'] });
+  });
+
   app.get('/health', (_req, res) => {
     res.json({ ok: true });
   });
