@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 const { pgOptions } = require('../src/db');
 
@@ -27,7 +27,7 @@ async function run() {
 }
 
 run().catch((e) => {
-  console.error(e);
+  console.error(e.message || e);
   process.exit(1);
 });
 

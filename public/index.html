@@ -13,6 +13,7 @@
       --accent: #3d8bfd;
       --accent-hover: #5ca0ff;
       --danger: #f87171;
+      --ok: #86efac;
       --border: #2d3a4f;
       --radius: 10px;
       font-family: system-ui, -apple-system, Segoe UI, sans-serif;
@@ -37,16 +38,35 @@
       letter-spacing: -0.02em;
     }
     p.sub {
-      margin: 0 0 1.75rem;
+      margin: 0 0 1rem;
       color: var(--muted);
       font-size: 0.9rem;
     }
+    .status {
+      font-size: 0.82rem;
+      margin-bottom: 1.5rem;
+      color: var(--muted);
+    }
+    .status.ok { color: var(--ok); }
+    .status.bad { color: var(--danger); }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1.25rem 1.35rem;
       margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    input[type="file"] {
+      width: 100%;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
     }
     button {
       width: 100%;
@@ -59,6 +79,8 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    button.secondary { background: #334155; margin-top: 0.5rem; }
+    button.secondary:hover:not(:disabled) { background: #475569; }
     button:hover:not(:disabled) { background: var(--accent-hover); }
     button:disabled {
       opacity: 0.55;
@@ -70,7 +92,7 @@
       min-height: 1.25rem;
     }
     .msg.err { color: var(--danger); }
-    .msg.ok { color: #86efac; }
+    .msg.ok { color: var(--ok); }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -100,36 +122,50 @@
 <body>
   <div class="wrap">
     <h1>CSV → Postgres</h1>
-    <p class="sub">Loads the file from <code>CSV_FILE_PATH</code>, then shows age distribution.</p>
+    <p class="sub">Upload a CSV from your machine, or import the file configured on the server (<code>CSV_FILE_PATH</code>).</p>
+    <p class="status" id="status" aria-live="polite">Checking API…</p>
 
     <div class="card">
-      <button type="button" id="run">Import CSV into database</button>
+      <h2>1. Upload CSV (recommended for Render)</h2>
+      <input type="file" id="file" accept=".csv,text/csv" />
+      <button type="button" id="upload">Upload &amp; import</button>
+      <div class="msg" id="msgUpload" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Import server file</h2>
+      <button type="button" class="secondary" id="run">Import from <code>CSV_FILE_PATH</code></button>
       <div class="msg" id="msg" aria-live="polite"></div>
     </div>
 
     <div class="card">
+      <h2>Age distribution</h2>
       <table id="tbl" aria-label="Age distribution">
         <thead>
           <tr><th>Age group</th><th>% of users</th></tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="2" class="empty">No data yet — run import or check DB.</td></tr>
+          <tr><td colspan="2" class="empty">Loading…</td></tr>
         </tbody>
       </table>
     </div>
 
     <footer>
-      API: <code>GET /api/report</code> · <code>POST /api/ingest</code> · <code>GET /health</code>
+      <code>GET /health</code> · <code>GET /api/report</code> · <code>POST /api/ingest</code> · <code>POST /api/ingest/upload</code>
     </footer>
   </div>
   <script>
+    const statusEl = document.getElementById('status');
     const msg = document.getElementById('msg');
+    const msgUpload = document.getElementById('msgUpload');
     const tbody = document.getElementById('tbody');
-    const btn = document.getElementById('run');
+    const btnRun = document.getElementById('run');
+    const btnUpload = document.getElementById('upload');
+    const fileInput = document.getElementById('file');
 
-    function setMsg(text, cls) {
-      msg.textContent = text || '';
-      msg.className = 'msg' + (cls ? ' ' + cls : '');
+    function setMsg(el, text, cls) {
+      el.textContent = text || '';
+      el.className = 'msg' + (cls ? ' ' + cls : '');
     }
 
     function renderReport(rows) {
@@ -163,21 +199,16 @@
       renderReport(data.report);
     }
 
-    document.getElementById('run').addEventListener('click', async () => {
-      btn.disabled = true;
-      setMsg('Importing…');
-      try {
-        const res = await fetch('/api/ingest', { method: 'POST' });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Import failed');
-        setMsg('Imported ' + data.inserted + ' row(s).', 'ok');
-        renderReport(data.report);
-      } catch (e) {
-        setMsg(e.message, 'err');
-      } finally {
-        btn.disabled = false;
-      }
-    });
+    fetch('/health')
+      .then((r) => r.json())
+      .then((d) => {
+        statusEl.textContent = 'API: connected (' + (d.service || 'ok') + ')';
+        statusEl.className = 'status ok';
+      })
+      .catch(() => {
+        statusEl.textContent = 'API: unreachable';
+        statusEl.className = 'status bad';
+      });
 
     loadReport().catch(() => {
       tbody.replaceChildren();
@@ -185,9 +216,49 @@
       const td = document.createElement('td');
       td.colSpan = 2;
       td.className = 'empty';
-      td.textContent = 'Could not load report (is the server up?).';
+      td.textContent = 'Could not load report.';
       tr.appendChild(td);
       tbody.appendChild(tr);
+    });
+
+    btnUpload.addEventListener('click', async () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) {
+        setMsg(msgUpload, 'Choose a .csv file first.', 'err');
+        return;
+      }
+      btnUpload.disabled = true;
+      setMsg(msgUpload, 'Uploading…');
+      try {
+        const fd = new FormData();
+        fd.append('csv', f, f.name);
+        const res = await fetch('/api/ingest/upload', { method: 'POST', body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        setMsg(msgUpload, 'Imported ' + data.inserted + ' row(s).', 'ok');
+        renderReport(data.report);
+        setMsg(msg, '');
+      } catch (e) {
+        setMsg(msgUpload, e.message, 'err');
+      } finally {
+        btnUpload.disabled = false;
+      }
+    });
+
+    btnRun.addEventListener('click', async () => {
+      btnRun.disabled = true;
+      setMsg(msg, 'Importing…');
+      try {
+        const res = await fetch('/api/ingest', { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Import failed');
+        setMsg(msg, 'Imported ' + data.inserted + ' row(s).', 'ok');
+        renderReport(data.report);
+      } catch (e) {
+        setMsg(msg, e.message, 'err');
+      } finally {
+        btnRun.disabled = false;
+      }
     });
   </script>
 </body>

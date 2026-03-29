@@ -2,12 +2,22 @@
 
 const { Pool } = require('pg');
 
-// Local DB: set DATABASE_SSL=false in .env. Render / Neon: leave DATABASE_SSL unset (uses TLS).
+const CLOUD = /\.render\.com|neon\.tech|supabase\.co|railway\.app/i;
+const LOCAL = /localhost|127\.0\.0\.1/i;
+
 function pgOptions(url) {
-  const useSsl = process.env.DATABASE_SSL !== 'false';
+  const cloud = CLOUD.test(url);
+  const local = LOCAL.test(url) && !cloud;
+  const userWantsSslOff = process.env.DATABASE_SSL === 'false';
+
+  // Render etc. require TLS — ignore DATABASE_SSL=false for cloud URLs (common shell mistake).
+  if (userWantsSslOff && local) {
+    return { connectionString: url, ssl: false };
+  }
+
   return {
     connectionString: url,
-    ssl: useSsl ? { rejectUnauthorized: false } : false,
+    ssl: { rejectUnauthorized: false },
   };
 }
 

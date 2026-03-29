@@ -1,6 +1,7 @@
 'use strict';
 
-require('dotenv').config();
+// override: true so values in .env win over stale exports in your shell (e.g. USER@HOST placeholders).
+require('dotenv').config({ override: true });
 const path = require('path');
 
 function env(name) {
