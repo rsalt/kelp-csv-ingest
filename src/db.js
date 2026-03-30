@@ -2,34 +2,39 @@
 
 const { Pool } = require('pg');
 
-const CLOUD = /\.render\.com|neon\.tech|supabase\.co|railway\.app/i;
-const LOCAL = /localhost|127\.0\.0\.1/i;
-
-function pgOptions(url) {
-  const cloud = CLOUD.test(url);
-  const local = LOCAL.test(url) && !cloud;
-  const userWantsSslOff = process.env.DATABASE_SSL === 'false';
-
-  // Render etc. require TLS — ignore DATABASE_SSL=false for cloud URLs (common shell mistake).
-  if (userWantsSslOff && local) {
-    return { connectionString: url, ssl: false };
-  }
-
-  return {
-    connectionString: url,
-    ssl: { rejectUnauthorized: false },
-  };
-}
-
 let pool;
 
+/**
+ * Initializes and returns a PostgreSQL connection pool.
+ */
 function getPool(databaseUrl) {
   if (!pool) {
-    pool = new Pool({ ...pgOptions(databaseUrl), max: 10 });
+    const useSsl = process.env.DATABASE_SSL !== 'false';
+    
+    const config = {
+      connectionString: databaseUrl,
+      max: 10,
+    };
+
+    // Cloud providers like Render/Heroku require SSL for connection.
+    if (useSsl) {
+      config.ssl = {
+        rejectUnauthorized: false
+      };
+    }
+
+    pool = new Pool(config);
+
+    pool.on('error', (err) => {
+      console.error('Unexpected database error:', err);
+    });
   }
   return pool;
 }
 
+/**
+ * Gracefully closes the database pool.
+ */
 async function closePool() {
   if (pool) {
     await pool.end();
@@ -37,4 +42,4 @@ async function closePool() {
   }
 }
 
-module.exports = { getPool, closePool, pgOptions };
+module.exports = { getPool, closePool };

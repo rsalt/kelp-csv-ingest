@@ -1,0 +1,6 @@
+name.firstName,name.lastName,age,address.line1,address.line2,address.city,address.state,gender
+Alex,Kim,16,10 Oak Lane,,Austin,TX,male
+Sam,Lee,29,88 River Rd,Unit 2,Seattle,WA,male
+Pat,Nova,44,400 Hill Ave,,Denver,CO,female
+Chris,Ray,58,5 Coast Rd,,Miami,FL,male
+Morgan,Wu,71,1 Lake View,,Portland,OR,female

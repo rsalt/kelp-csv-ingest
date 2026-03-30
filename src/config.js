@@ -1,19 +1,24 @@
 'use strict';
 
-// override: true so values in .env win over stale exports in your shell (e.g. USER@HOST placeholders).
-require('dotenv').config({ override: true });
 const path = require('path');
 
-function env(name) {
-  const v = process.env[name];
-  if (!v || !String(v).trim()) throw new Error(`Set ${name} in .env`);
-  return v;
+require('dotenv').config({ override: true });
+
+const csvEnv = process.env.CSV_FILE_PATH;
+const defaultCsvPath = path.join(__dirname, '..', 'data', 'sample.csv');
+
+const config = {
+  port: parseInt(process.env.PORT, 10) || 3000,
+  databaseUrl: process.env.DATABASE_URL,
+  csvFilePath: path.resolve(csvEnv || defaultCsvPath),
+  batchSize: parseInt(process.env.INGEST_BATCH_SIZE, 10) || 1000,
+  ingestOnStart: process.env.INGEST_ON_START === 'true',
+};
+
+// Simple validation to ensure the essential DB URL is present
+if (!config.databaseUrl) {
+  console.error('CRITICAL ERROR: DATABASE_URL is not defined in .env');
+  process.exit(1);
 }
 
-module.exports = {
-  port: Number(process.env.PORT) || 3000,
-  databaseUrl: env('DATABASE_URL'),
-  csvFilePath: process.env.CSV_FILE_PATH ? path.resolve(process.env.CSV_FILE_PATH) : null,
-  ingestOnStart: String(process.env.INGEST_ON_START || '').toLowerCase() === 'true',
-  batchSize: Number(process.env.INGEST_BATCH_SIZE) || 1000,
-};
+module.exports = config;

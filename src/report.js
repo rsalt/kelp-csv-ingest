@@ -2,47 +2,59 @@
 
 const { getPool } = require('./db');
 
-const ORDER = ['< 20', '20 to 40', '40 to 60', '> 60'];
+const AGE_GROUPS = ['< 20', '20 to 40', '40 to 60', '> 60'];
 
-const QUERY = `
-  WITH bucketed AS (
-    SELECT CASE
-      WHEN age < 20 THEN '< 20'
-      WHEN age >= 20 AND age <= 40 THEN '20 to 40'
-      WHEN age > 40 AND age <= 60 THEN '40 to 60'
-      ELSE '> 60'
-    END AS age_group
+/**
+ * Executes a SQL query to calculate the age distribution percentage.
+ */
+const DISTRIBUTION_QUERY = `
+  WITH user_buckets AS (
+    SELECT 
+      CASE
+        WHEN age < 20 THEN '< 20'
+        WHEN age BETWEEN 20 AND 40 THEN '20 to 40'
+        WHEN age > 40 AND age <= 60 THEN '40 to 60'
+        ELSE '> 60'
+      END AS group_name
     FROM public.users
   ),
-  counts AS (
-    SELECT age_group, COUNT(*)::double precision AS cnt FROM bucketed GROUP BY age_group
+  group_counts AS (
+    SELECT group_name, COUNT(*) as count FROM user_buckets GROUP BY group_name
   ),
-  total AS (SELECT COALESCE(SUM(cnt), 0) AS t FROM counts)
-  SELECT c.age_group,
-    CASE WHEN total.t = 0 THEN 0::numeric
-         ELSE ROUND((100.0 * c.cnt / total.t)::numeric, 2)
-    END AS pct
-  FROM counts c CROSS JOIN total
+  total_count AS (
+    SELECT COUNT(*) as total FROM public.users
+  )
+  SELECT 
+    b.group_name,
+    COALESCE(
+      ROUND((COALESCE(c.count, 0) * 100.0) / NULLIF(t.total, 0), 2),
+      0
+    ) AS percentage
+  FROM (SELECT unnest(ARRAY['< 20', '20 to 40', '40 to 60', '> 60']) AS group_name) b
+  LEFT JOIN group_counts c ON b.group_name = c.group_name
+  CROSS JOIN total_count t
 `;
 
 async function getAgeDistribution(databaseUrl) {
   const pool = getPool(databaseUrl);
-  const { rows } = await pool.query(QUERY);
-  const map = new Map(rows.map((r) => [r.age_group, Number(r.pct)]));
-  return ORDER.map((age_group) => ({ age_group, pct: map.get(age_group) ?? 0 }));
+  const { rows } = await pool.query(DISTRIBUTION_QUERY);
+  return rows.map(r => ({ age_group: r.group_name, pct: Number(r.percentage) }));
 }
 
+/**
+ * Prints the distribution report to the console in the required format.
+ */
 function logAgeDistribution(report) {
-  console.log('');
-  console.log('Age-Group\t% Distribution');
-  for (const { age_group, pct } of report) {
-    console.log(`${age_group}\t${pct}`);
+  console.log('\nAge-Group % Distribution');
+  for (const item of report) {
+    console.log(`${item.age_group.padEnd(15)} ${item.pct}`);
   }
   console.log('');
 }
 
 async function printAgeDistribution(databaseUrl) {
-  logAgeDistribution(await getAgeDistribution(databaseUrl));
+  const report = await getAgeDistribution(databaseUrl);
+  logAgeDistribution(report);
 }
 
 module.exports = { getAgeDistribution, printAgeDistribution, logAgeDistribution };

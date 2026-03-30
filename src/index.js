@@ -26,6 +26,17 @@ async function main() {
     console.log('POST /api/ingest — load CSV from CSV_FILE_PATH and print age report');
   });
 
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(
+        `Port ${config.port} is already in use. Stop the other process or set PORT=3001 in .env`,
+      );
+    } else {
+      console.error(err);
+    }
+    process.exit(1);
+  });
+
   const shutdown = async () => {
     server.close();
     await closePool();

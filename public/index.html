@@ -15,249 +15,303 @@
       --danger: #f87171;
       --ok: #86efac;
       --border: #2d3a4f;
-      --radius: 10px;
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      font-family: system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-    .wrap {
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 2.5rem 1.25rem;
-    }
-    h1 {
-      font-size: 1.35rem;
-      font-weight: 600;
-      margin: 0 0 0.35rem;
-      letter-spacing: -0.02em;
-    }
-    p.sub {
-      margin: 0 0 1rem;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-    .status {
-      font-size: 0.82rem;
-      margin-bottom: 1.5rem;
-      color: var(--muted);
-    }
-    .status.ok { color: var(--ok); }
-    .status.bad { color: var(--danger); }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 1rem; }
+    h2 { font-size: 0.95rem; margin: 0 0 0.65rem; color: var(--muted); font-weight: 600; }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.35rem;
-      margin-bottom: 1.25rem;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
     }
-    .card h2 {
-      margin: 0 0 0.75rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-    input[type="file"] {
-      width: 100%;
-      margin-bottom: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+    input[type="file"] { width: 100%; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--muted); }
     button {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #fff;
-      background: var(--accent);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      width: 100%; padding: 0.7rem; font-weight: 600; color: #fff; background: var(--accent);
+      border: none; border-radius: 8px; cursor: pointer;
     }
-    button.secondary { background: #334155; margin-top: 0.5rem; }
-    button.secondary:hover:not(:disabled) { background: #475569; }
     button:hover:not(:disabled) { background: var(--accent-hover); }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .msg {
-      margin-top: 0.85rem;
-      font-size: 0.88rem;
-      min-height: 1.25rem;
-    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg { margin-top: 0.75rem; font-size: 0.88rem; min-height: 1.2rem; }
     .msg.err { color: var(--danger); }
     .msg.ok { color: var(--ok); }
-    table {
+
+    table.data {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
-    th, td {
-      padding: 0.5rem 0.35rem;
-      text-align: left;
+    table.data th,
+    table.data td {
+      padding: 0.65rem 0.75rem;
       border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
     }
-    th { color: var(--muted); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
-    tr:last-child td { border-bottom: none; }
-    td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-    .empty {
+    table.data th {
       color: var(--muted);
-      font-size: 0.88rem;
-      padding: 0.25rem 0;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
-    footer {
-      margin-top: 2rem;
-      font-size: 0.78rem;
-      color: var(--muted);
+    table.data td.num,
+    table.data th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
-    footer code { font-size: 0.85em; background: var(--bg); padding: 0.15rem 0.4rem; border-radius: 4px; }
+    table.data td.num { white-space: nowrap; }
+    .empty { color: var(--muted); font-size: 0.88rem; }
+
+    table.age-table { max-width: 420px; }
+
+    .scroll-users {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -0.25rem;
+      padding: 0 0.25rem;
+    }
+    table.users-table {
+      table-layout: fixed;
+      width: 100%;
+      min-width: 720px;
+    }
+    table.users-table col.col-id { width: 52px; }
+    table.users-table col.col-age { width: 56px; }
+    table.users-table col.col-name { width: 22%; }
+    table.users-table col.col-json { width: 39%; }
+
+    .json-pre {
+      margin: 0;
+      padding: 0.5rem 0.6rem;
+      font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: #c8d4e4;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 8.5rem;
+      overflow: auto;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>CSV → Postgres</h1>
-    <p class="sub">Upload a CSV from your machine, or import the file configured on the server (<code>CSV_FILE_PATH</code>).</p>
-    <p class="status" id="status" aria-live="polite">Checking API…</p>
-
+    <p id="filewarn" class="msg err" style="display:none;margin-bottom:1rem"></p>
     <div class="card">
-      <h2>1. Upload CSV (recommended for Render)</h2>
-      <input type="file" id="file" accept=".csv,text/csv" />
-      <button type="button" id="upload">Upload &amp; import</button>
-      <div class="msg" id="msgUpload" aria-live="polite"></div>
-    </div>
-
-    <div class="card">
-      <h2>2. Import server file</h2>
-      <button type="button" class="secondary" id="run">Import from <code>CSV_FILE_PATH</code></button>
+      <input type="file" id="file" accept=".csv,text/csv" title="Upload a CSV file" placeholder="Upload a CSV file" />
+      <button type="button" id="go">Import</button>
       <div class="msg" id="msg" aria-live="polite"></div>
     </div>
 
     <div class="card">
       <h2>Age distribution</h2>
-      <table id="tbl" aria-label="Age distribution">
-        <thead>
-          <tr><th>Age group</th><th>% of users</th></tr>
-        </thead>
-        <tbody id="tbody">
-          <tr><td colspan="2" class="empty">Loading…</td></tr>
-        </tbody>
+      <table class="data age-table" aria-label="Age distribution">
+        <thead><tr><th>Age group</th><th class="num">%</th></tr></thead>
+        <tbody id="tbodyAge"><tr><td colspan="2" class="empty">…</td></tr></tbody>
       </table>
     </div>
 
-    <footer>
-      <code>GET /health</code> · <code>GET /api/report</code> · <code>POST /api/ingest</code> · <code>POST /api/ingest/upload</code>
-    </footer>
+    <div class="card">
+      <h2>Users in database (latest first)</h2>
+      <div class="scroll-users">
+        <table class="data users-table" aria-label="Imported users">
+          <colgroup>
+            <col class="col-id" />
+            <col class="col-name" />
+            <col class="col-age" />
+            <col class="col-json" />
+            <col class="col-json" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th class="num">Age</th>
+              <th>Address</th>
+              <th>Additional</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyUsers"><tr><td colspan="5" class="empty">…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
   <script>
-    const statusEl = document.getElementById('status');
     const msg = document.getElementById('msg');
-    const msgUpload = document.getElementById('msgUpload');
-    const tbody = document.getElementById('tbody');
-    const btnRun = document.getElementById('run');
-    const btnUpload = document.getElementById('upload');
-    const fileInput = document.getElementById('file');
+    const filewarn = document.getElementById('filewarn');
+    const tbodyAge = document.getElementById('tbodyAge');
+    const tbodyUsers = document.getElementById('tbodyUsers');
+    const btn = document.getElementById('go');
+    const file = document.getElementById('file');
 
-    function setMsg(el, text, cls) {
-      el.textContent = text || '';
-      el.className = 'msg' + (cls ? ' ' + cls : '');
+    if (!window.location.protocol.startsWith('http')) {
+      filewarn.style.display = 'block';
+      filewarn.textContent =
+        'Open this app in the browser at http://localhost:3000 (run npm start). Do not open index.html from disk — API calls will fail.';
     }
 
-    function renderReport(rows) {
-      tbody.replaceChildren();
+    async function apiGet(path) {
+      if (!window.location.protocol.startsWith('http')) {
+        return { ok: false, error: 'Use http://localhost:3000' };
+      }
+      try {
+        const res = await fetch(path);
+        const text = await res.text();
+        let data;
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch {
+          return {
+            ok: false,
+            error: 'Non-JSON response (HTTP ' + res.status + '). Restart the server or check the URL.',
+          };
+        }
+        // Backend may use `success: true` (refactor) or `ok: true` — treat both as success.
+        if (data.success === true && data.ok == null) {
+          data.ok = true;
+        }
+        if (!res.ok && data.error == null) {
+          data.ok = false;
+          data.error = 'HTTP ' + res.status;
+        }
+        return data;
+      } catch (e) {
+        return { ok: false, error: e.message || 'Network error' };
+      }
+    }
+
+    function j(x) {
+      if (x == null) return '—';
+      if (typeof x === 'object') return JSON.stringify(x, null, 2);
+      return String(x);
+    }
+
+    function jsonCell(val) {
+      const td = document.createElement('td');
+      const pre = document.createElement('pre');
+      pre.className = 'json-pre';
+      pre.textContent = j(val);
+      td.appendChild(pre);
+      return td;
+    }
+
+    function renderAge(rows) {
+      tbodyAge.replaceChildren();
       if (!rows || !rows.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 2;
         td.className = 'empty';
-        td.textContent = 'No rows in database.';
+        td.textContent = 'No data.';
         tr.appendChild(td);
-        tbody.appendChild(tr);
+        tbodyAge.appendChild(tr);
         return;
       }
       for (const r of rows) {
         const tr = document.createElement('tr');
-        const td1 = document.createElement('td');
-        td1.textContent = r.age_group;
-        const td2 = document.createElement('td');
-        td2.textContent = String(r.pct);
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tbody.appendChild(tr);
+        const a = document.createElement('td');
+        a.textContent = r.age_group;
+        const b = document.createElement('td');
+        b.className = 'num';
+        b.textContent = String(r.pct);
+        tr.appendChild(a);
+        tr.appendChild(b);
+        tbodyAge.appendChild(tr);
       }
     }
 
-    async function loadReport() {
-      const res = await fetch('/api/report');
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Report request failed');
-      renderReport(data.report);
-    }
-
-    fetch('/health')
-      .then((r) => r.json())
-      .then((d) => {
-        statusEl.textContent = 'API: connected (' + (d.service || 'ok') + ')';
-        statusEl.className = 'status ok';
-      })
-      .catch(() => {
-        statusEl.textContent = 'API: unreachable';
-        statusEl.className = 'status bad';
-      });
-
-    loadReport().catch(() => {
-      tbody.replaceChildren();
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 2;
-      td.className = 'empty';
-      td.textContent = 'Could not load report.';
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-    });
-
-    btnUpload.addEventListener('click', async () => {
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) {
-        setMsg(msgUpload, 'Choose a .csv file first.', 'err');
+    function renderUsers(users) {
+      tbodyUsers.replaceChildren();
+      if (!users || !users.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.className = 'empty';
+        td.textContent = 'No rows yet — import a CSV.';
+        tr.appendChild(td);
+        tbodyUsers.appendChild(tr);
         return;
       }
-      btnUpload.disabled = true;
-      setMsg(msgUpload, 'Uploading…');
+      for (const u of users) {
+        const tr = document.createElement('tr');
+        const c0 = document.createElement('td');
+        c0.textContent = String(u.id);
+        const c1 = document.createElement('td');
+        c1.textContent = u.name;
+        const c2 = document.createElement('td');
+        c2.className = 'num';
+        c2.textContent = String(u.age);
+        tr.appendChild(c0);
+        tr.appendChild(c1);
+        tr.appendChild(c2);
+        tr.appendChild(jsonCell(u.address));
+        tr.appendChild(jsonCell(u.additional_info));
+        tbodyUsers.appendChild(tr);
+      }
+    }
+
+    async function refresh() {
+      const rReport = await apiGet('/api/report');
+      const rUsers = await apiGet('/api/users?limit=100');
+      if (rReport.ok) renderAge(rReport.report);
+      else {
+        tbodyAge.replaceChildren();
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 2;
+        td.className = 'empty';
+        td.textContent = rReport.error || 'Report failed.';
+        tr.appendChild(td);
+        tbodyAge.appendChild(tr);
+      }
+      if (rUsers.ok) renderUsers(rUsers.users);
+      else {
+        tbodyUsers.replaceChildren();
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 5;
+        td.className = 'empty';
+        td.textContent = rUsers.error || 'Could not load users.';
+        tr.appendChild(td);
+        tbodyUsers.appendChild(tr);
+      }
+    }
+
+    refresh();
+
+    btn.addEventListener('click', async () => {
+      const f = file.files && file.files[0];
+      if (!f) {
+        msg.textContent = 'Pick a CSV file.';
+        msg.className = 'msg err';
+        return;
+      }
+      btn.disabled = true;
+      msg.textContent = 'Working…';
+      msg.className = 'msg';
       try {
         const fd = new FormData();
         fd.append('csv', f, f.name);
         const res = await fetch('/api/ingest/upload', { method: 'POST', body: fd });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Upload failed');
-        setMsg(msgUpload, 'Imported ' + data.inserted + ' row(s).', 'ok');
-        renderReport(data.report);
-        setMsg(msg, '');
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        msg.textContent = 'Imported ' + data.inserted + ' row(s).';
+        msg.className = 'msg ok';
+        await refresh();
       } catch (e) {
-        setMsg(msgUpload, e.message, 'err');
+        msg.textContent = e.message;
+        msg.className = 'msg err';
       } finally {
-        btnUpload.disabled = false;
-      }
-    });
-
-    btnRun.addEventListener('click', async () => {
-      btnRun.disabled = true;
-      setMsg(msg, 'Importing…');
-      try {
-        const res = await fetch('/api/ingest', { method: 'POST' });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Import failed');
-        setMsg(msg, 'Imported ' + data.inserted + ' row(s).', 'ok');
-        renderReport(data.report);
-      } catch (e) {
-        setMsg(msg, e.message, 'err');
-      } finally {
-        btnRun.disabled = false;
+        btn.disabled = false;
       }
     });
   </script>
